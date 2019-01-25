@@ -83,7 +83,7 @@ public class Controller {
             String res = temp.toString();
             return ResponseEntity.status(HttpStatus.OK).body(res);
         } catch (PseudoNonConnecteException e) {
-            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pseudo non connecté");
         }
     }
 
