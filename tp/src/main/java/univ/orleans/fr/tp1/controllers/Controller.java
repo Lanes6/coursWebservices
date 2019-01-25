@@ -70,7 +70,7 @@ public class Controller {
     }
 
     @RequestMapping(value = "/dicos", method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<String> getDicos(@RequestParam String pseudo,@RequestParam String dico) {
+    public ResponseEntity<String> getDicos() {
         Collection<String> temp = facadeMotus.getListeDicos();
         String res = temp.toString();
         return ResponseEntity.status(HttpStatus.OK).body(res);
@@ -79,8 +79,8 @@ public class Controller {
     @RequestMapping(value = "/partie", method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<String> getPartie(@RequestParam String pseudo) {
         try {
-            Partie temp = facadeMotus.getPartie(pseudo);
-            String res = temp.toString();
+            Partie partie = facadeMotus.getPartie(pseudo);
+            String res = "Partie de "+pseudo;
             return ResponseEntity.status(HttpStatus.OK).body(res);
         } catch (PseudoNonConnecteException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pseudo non connecté");
