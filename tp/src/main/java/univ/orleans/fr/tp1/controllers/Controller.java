@@ -5,6 +5,7 @@ import exceptions.PseudoDejaPrisException;
 import exceptions.PseudoNonConnecteException;
 import facade.FacadeMotus;
 import facade.FacadeMotusStatic;
+import modele.Partie;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -73,6 +74,17 @@ public class Controller {
         Collection<String> temp = facadeMotus.getListeDicos();
         String res = temp.toString();
         return ResponseEntity.status(HttpStatus.OK).body(res);
+    }
+
+    @RequestMapping(value = "/partie", method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<String> getPartie(@RequestParam String pseudo) {
+        try {
+            Partie temp = facadeMotus.getPartie(pseudo);
+            String res = temp.toString();
+            return ResponseEntity.status(HttpStatus.OK).body(res);
+        } catch (PseudoNonConnecteException e) {
+            e.printStackTrace();
+        }
     }
 
 
