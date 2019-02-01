@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
+import java.util.Iterator;
 
 @RestController
 @RequestMapping
@@ -57,8 +58,8 @@ public class Controller {
         }
     }
 
-    @RequestMapping(value = "/nouvellePartie", method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<String> nouvellePartie(@RequestParam String pseudo,@RequestParam String dico) {
+    @RequestMapping(value = "/nouvellePartie", method = RequestMethod.POST, produces = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<String> nouvellePartie(@RequestParam String pseudo, @RequestParam String dico) {
         try {
             facadeMotus.nouvellePartie(pseudo,dico);
             return ResponseEntity.created(new URI("/motus/partie" + pseudo)).build();
@@ -72,7 +73,11 @@ public class Controller {
     @RequestMapping(value = "/dicos", method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<String> getDicos() {
         Collection<String> temp = facadeMotus.getListeDicos();
-        String res = temp.toString();
+        String res="Liste des dicos:";
+        Iterator it=temp.iterator();
+        while (it.hasNext()){
+            res+=it.next()+",";
+        }
         return ResponseEntity.status(HttpStatus.OK).body(res);
     }
 
@@ -81,6 +86,9 @@ public class Controller {
         try {
             Partie partie = facadeMotus.getPartie(pseudo);
             String res = "Partie de "+pseudo;
+            String motRecherche=partie.getMotRecherche();
+            res+=" Mot recherché:"+partie.getMotRecherche();
+            res+=" Nb Essais:"+partie.getNbEssais();
             return ResponseEntity.status(HttpStatus.OK).body(res);
         } catch (PseudoNonConnecteException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pseudo non connecté");
