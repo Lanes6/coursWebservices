@@ -9,10 +9,10 @@ import modele.Partie;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import univ.orleans.fr.tp1.Joueur;
+import univ.orleans.fr.tp1.Mottt;
+import univ.orleans.fr.tp1.Partieee;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -24,30 +24,66 @@ import java.util.Iterator;
 public class Controller {
     private static FacadeMotus facadeMotus = new FacadeMotusStatic();
 
-    @RequestMapping(value = "/joueur", method = RequestMethod.POST, produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<String> connexion(@RequestParam String pseudo) {
+    @RequestMapping (value = "/joueur", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<String> connexion(@RequestBody Joueur joueur) {
         try {
-            facadeMotus.connexion(pseudo);
-            return ResponseEntity.created(new URI("/motus/partie" + pseudo)).build();
+            facadeMotus.connexion(joueur.getPseudo());
+            return ResponseEntity.created(new URI("/motus/partie" + joueur.getPseudo())).build();
         } catch (PseudoDejaPrisException | URISyntaxException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pseudo deja pris");
         }
     }
 
-    @RequestMapping(value = "/deco", method = RequestMethod.DELETE, produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<String> deconnexion(@RequestParam String pseudo) {
+    @RequestMapping (value = "/joueur", method = RequestMethod.DELETE, consumes = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<String> deconnexion(@RequestBody Joueur joueur) {
         try {
-            facadeMotus.deconnexion(pseudo);
+            facadeMotus.deconnexion(joueur.getPseudo());
             return ResponseEntity.status(HttpStatus.OK).body("Bye");
         } catch (PseudoNonConnecteException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pseudo non connecté");
         }
     }
 
-    @RequestMapping(value = "/mot", method = RequestMethod.POST, produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<String> jouer(@RequestParam String pseudo, @RequestParam String mot) {
+    @RequestMapping (value = "/dicos", method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<String> getDicos() {
+        Collection<String> temp = facadeMotus.getListeDicos();
+        String res = "Liste des dicos:";
+        Iterator it = temp.iterator();
+        while (it.hasNext()) {
+            res += it.next() + ",";
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(res);
+    }
+
+    @RequestMapping (value = "/partie", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<String> nouvellePartie(@RequestBody Partieee partieee) {
         try {
-            String res=facadeMotus.jouer(pseudo, mot);
+            facadeMotus.nouvellePartie(partieee.getPseudo(), partieee.getDico());
+            return ResponseEntity.created(new URI("/motus/partie" + partieee.getPseudo())).build();
+        } catch (PseudoNonConnecteException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pseudo non connecté");
+        } catch (URISyntaxException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Mauvaise URI");
+        }
+    }
+
+    @RequestMapping (value = "/partie", method = RequestMethod.GET, consumes = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<String> getPartie(@RequestBody Partieee partieee) {
+        try {
+            Partie partie = facadeMotus.getPartie(partieee.getPseudo());
+            String res = "Partieee de " + partieee.getPseudo();
+            res += " Nb Essais:" + partie.getNbEssais();
+            return ResponseEntity.status(HttpStatus.OK).body(res);
+        } catch (PseudoNonConnecteException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pseudo non connecté");
+        }
+    }
+
+    @RequestMapping (value = "/partie", method = RequestMethod.PUT, consumes = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<String> jouer(@RequestBody Mottt mottt) {
+        try {
+            String res = facadeMotus.jouer(mottt.getPseudo(), mottt.getMot());
+            res += "  Nombre d'essais: " + facadeMotus.getPartie(mottt.getPseudo()).getNbEssais();
             return ResponseEntity.status(HttpStatus.OK).body(res);
         } catch (PseudoNonConnecteException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pseudo non connecté");
@@ -57,43 +93,4 @@ public class Controller {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Mot inexistant");
         }
     }
-
-    @RequestMapping(value = "/nouvellePartie", method = RequestMethod.POST, produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<String> nouvellePartie(@RequestParam String pseudo, @RequestParam String dico) {
-        try {
-            facadeMotus.nouvellePartie(pseudo,dico);
-            return ResponseEntity.created(new URI("/motus/partie" + pseudo)).build();
-        } catch (PseudoNonConnecteException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pseudo non connecté");
-        } catch (URISyntaxException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Mauvaise URI");
-        }
-    }
-
-    @RequestMapping(value = "/dicos", method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<String> getDicos() {
-        Collection<String> temp = facadeMotus.getListeDicos();
-        String res="Liste des dicos:";
-        Iterator it=temp.iterator();
-        while (it.hasNext()){
-            res+=it.next()+",";
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(res);
-    }
-
-    @RequestMapping(value = "/partie", method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<String> getPartie(@RequestParam String pseudo) {
-        try {
-            Partie partie = facadeMotus.getPartie(pseudo);
-            String res = "Partie de "+pseudo;
-            String motRecherche=partie.getMotRecherche();
-            res+=" Mot recherché:"+partie.getMotRecherche();
-            res+=" Nb Essais:"+partie.getNbEssais();
-            return ResponseEntity.status(HttpStatus.OK).body(res);
-        } catch (PseudoNonConnecteException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pseudo non connecté");
-        }
-    }
-
-
 }
