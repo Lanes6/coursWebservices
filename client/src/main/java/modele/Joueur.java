@@ -10,16 +10,6 @@ public class Joueur {
 
     }
 
-    public void createJoueur(String ps){
-        final String uri="http://localhost:8080/joueur";
-
-        Joueur player = new Joueur();
-        player.setPseudo(ps);
-        RestTemplate restTemplate = new RestTemplate();
-        Joueur result = restTemplate.postForObject(uri,player,Joueur.class);
-        System.out.println(result);
-    }
-
 
     public String getPseudo() {
         return pseudo;
