@@ -1,31 +1,138 @@
 package controller;
 
-import modele.Joueur;
+import modele.Facade;
 import modele.MotusLocal;
-import org.springframework.http.*;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 
-import java.util.Arrays;
-
-import static modele.MotusLocal.connexion;
-import static modele.MotusLocal.getDicos;
-
+import java.util.Scanner;
 
 public class ClientController {
     public static void main(String args[]) {
+        int choix;
+        Scanner sc = new Scanner(System.in);
+        Facade motus = new MotusLocal();
+        while (true){
+            System.out.println("-----------------------");
+            System.out.println("Actions=> 1-Connexion  2-Deconnexion  3-Dicos  4-Nouvelle partie  5-Jouer  6-Info Partie 0-Quitter");
+            choix=Integer.parseInt(sc.nextLine());
+            switch (choix){
+                case 1: System.out.println("Nom de joueur:");
+                case 2: System.out.println(motus.deconnexion());
+                case 3: System.out.println(motus.getDicos());
+                case 4: System.out.println("-");
+                case 5: System.out.println("-");
+                case 6: System.out.println("-");
+                case 7: System.out.println("-");
+                case 0: break;
+            }
+
+        }
+        /*
+        String resConnect="";
+
+        resConnect = motus.connexion("J1");
+        System.out.println(resConnect);
+        sc.nextLine();
+
+        resConnect = motus.deconnexion();
+        System.out.println(resConnect);
+        sc.nextLine();
+
+        resConnect = motus.connexion("J2");
+        System.out.println(resConnect);
+        sc.nextLine();
+
+*/
+
+        //String resDico=getDicos();
 
 
-        //String res=getDicos();
-        Joueur res= connexion("j");
-        System.out.println(res);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        //Bordel
+        /*final String uriJoueur = "http://localhost:8080/joueur";
+        String test="paf";
+        Joueur player=new Joueur();
+        player.setPseudo("paf");
+        String json="";
+
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        try {
+            json = ow.writeValueAsString(player);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        System.out.println(json);
+
+
+        RestTemplate restTemplate = new RestTemplate();
+        MultiValueMap<String, Joueur> parts = new LinkedMultiValueMap<String, Joueur>();
+        parts.add("test", player);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+        restTemplate.postForObject("http://localhost:8080/joueur", parts, Joueur.class);
+
+*/
+
+
+
+        /*
+        MappingJackson2HttpMessageConverter jsonHttpMessageConverter = new MappingJackson2HttpMessageConverter();
+        jsonHttpMessageConverter.getObjectMapper().configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        restTemplate.getMessageConverters().add(jsonHttpMessageConverter);
+*/
+        /*
+
+        MultiValueMap<String, Joueur> parts = new LinkedMultiValueMap<String, Joueur>();
+        parts.add("test", player);
+        restTemplate.postForObject("http://localhost:8080/test", parts, Joueur.class);
+
+
+*/
+
+
+        //System.out.println(response);
 
 
         //Joueur player= new Joueur();
         //player.createJoueur("ps");
-    }
+
 
 
    /* public static Joueur connexion(String pseudo, String mdp){
@@ -61,4 +168,4 @@ public class ClientController {
             }
         }
             */
-    }
+

@@ -6,6 +6,7 @@ import exceptions.PseudoNonConnecteException;
 import facade.FacadeMotus;
 import facade.FacadeMotusStatic;
 import modele.Partie;
+import org.jboss.logging.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +25,16 @@ import java.util.Iterator;
 public class Controller {
     private static FacadeMotus facadeMotus = new FacadeMotusStatic();
 
-    @RequestMapping (value = "/joueur", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE})
+    @RequestMapping (value = "/test", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE} ,produces ={MediaType.APPLICATION_JSON_VALUE} )
+    public ResponseEntity<String> test(@RequestBody String joueur) throws URISyntaxException {
+        System.out.println("hello");
+        System.out.println(joueur);
+        return ResponseEntity.created(new URI("/paf")).build();
+    }
+
+
+
+    @RequestMapping (value = "/motus/joueur", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE} ,produces ={MediaType.APPLICATION_JSON_VALUE} )
     public ResponseEntity<String> connexion(@RequestBody Joueur joueur) {
         try {
             facadeMotus.connexion(joueur.getPseudo());
@@ -34,18 +44,19 @@ public class Controller {
         }
     }
 
-    @RequestMapping (value = "/joueur", method = RequestMethod.DELETE, consumes = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<String> deconnexion(@RequestBody Joueur joueur) {
+    @RequestMapping (value = "/motus/joueur/{pseudo}", method = RequestMethod.DELETE)
+    public ResponseEntity<String> deconnexion(@PathVariable("pseudo") String pseudo ) {
         try {
-            facadeMotus.deconnexion(joueur.getPseudo());
+            facadeMotus.deconnexion(pseudo);
             return ResponseEntity.status(HttpStatus.OK).body("Bye");
         } catch (PseudoNonConnecteException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pseudo non connecté");
         }
     }
 
-    @RequestMapping (value = "/dicos", method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_VALUE})
+    @RequestMapping (value = "/dicos", method = RequestMethod.GET ,produces ={MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<String> getDicos() {
+        System.out.println("hello");
         Collection<String> temp = facadeMotus.getListeDicos();
         String res = "Liste des dicos:";
         Iterator it = temp.iterator();
@@ -55,7 +66,7 @@ public class Controller {
         return ResponseEntity.status(HttpStatus.OK).body(res);
     }
 
-    @RequestMapping (value = "/partie", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE})
+    @RequestMapping (value = "/partie", method = RequestMethod.POST,  consumes = {MediaType.APPLICATION_JSON_VALUE} ,produces ={MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<String> nouvellePartie(@RequestBody Partieee partieee) {
         try {
             facadeMotus.nouvellePartie(partieee.getPseudo(), partieee.getDico());
@@ -67,7 +78,7 @@ public class Controller {
         }
     }
 
-    @RequestMapping (value = "/partie", method = RequestMethod.GET, consumes = {MediaType.APPLICATION_JSON_VALUE})
+    @RequestMapping (value = "/partie", method = RequestMethod.GET,  consumes = {MediaType.APPLICATION_JSON_VALUE} ,produces ={MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<String> getPartie(@RequestBody Partieee partieee) {
         try {
             Partie partie = facadeMotus.getPartie(partieee.getPseudo());
@@ -79,7 +90,7 @@ public class Controller {
         }
     }
 
-    @RequestMapping (value = "/partie", method = RequestMethod.PUT, consumes = {MediaType.APPLICATION_JSON_VALUE})
+    @RequestMapping (value = "/partie", method = RequestMethod.PUT,  consumes = {MediaType.APPLICATION_JSON_VALUE} ,produces ={MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<String> jouer(@RequestBody Mottt mottt) {
         try {
             String res = facadeMotus.jouer(mottt.getPseudo(), mottt.getMot());
