@@ -1,4 +1,8 @@
 package univ.orleans.fr.tp1.controllers;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import exceptions.MaxNbCoupsException;
 import exceptions.MotInexistantException;
 import exceptions.PseudoDejaPrisException;
@@ -6,7 +10,6 @@ import exceptions.PseudoNonConnecteException;
 import facade.FacadeMotus;
 import facade.FacadeMotusStatic;
 import modele.Partie;
-import org.jboss.logging.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,21 +28,12 @@ import java.util.Iterator;
 public class Controller {
     private static FacadeMotus facadeMotus = new FacadeMotusStatic();
 
-    @RequestMapping (value = "/test", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE} ,produces ={MediaType.APPLICATION_JSON_VALUE} )
-    public ResponseEntity<String> test(@RequestBody String joueur) throws URISyntaxException {
-        System.out.println("hello");
-        System.out.println(joueur);
-        return ResponseEntity.created(new URI("/paf")).build();
-    }
-
-
-
     @RequestMapping (value = "/motus/joueur", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE} ,produces ={MediaType.APPLICATION_JSON_VALUE} )
     public ResponseEntity<String> connexion(@RequestBody Joueur joueur) {
         try {
             facadeMotus.connexion(joueur.getPseudo());
-            return ResponseEntity.created(new URI("/motus/partie" + joueur.getPseudo())).build();
-        } catch (PseudoDejaPrisException | URISyntaxException e) {
+            return new ResponseEntity(HttpStatus.CREATED);
+        } catch (PseudoDejaPrisException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pseudo deja pris");
         }
     }
@@ -54,9 +48,8 @@ public class Controller {
         }
     }
 
-    @RequestMapping (value = "/dicos", method = RequestMethod.GET ,produces ={MediaType.APPLICATION_JSON_VALUE})
+    @RequestMapping (value = "/motus/dicos", method = RequestMethod.GET ,produces ={MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<String> getDicos() {
-        System.out.println("hello");
         Collection<String> temp = facadeMotus.getListeDicos();
         String res = "Liste des dicos:";
         Iterator it = temp.iterator();
@@ -66,7 +59,7 @@ public class Controller {
         return ResponseEntity.status(HttpStatus.OK).body(res);
     }
 
-    @RequestMapping (value = "/partie", method = RequestMethod.POST,  consumes = {MediaType.APPLICATION_JSON_VALUE} ,produces ={MediaType.APPLICATION_JSON_VALUE})
+    @RequestMapping (value = "/motus/partie", method = RequestMethod.POST,  consumes = {MediaType.APPLICATION_JSON_VALUE} ,produces ={MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<String> nouvellePartie(@RequestBody Partieee partieee) {
         try {
             facadeMotus.nouvellePartie(partieee.getPseudo(), partieee.getDico());
@@ -78,23 +71,32 @@ public class Controller {
         }
     }
 
-    @RequestMapping (value = "/partie", method = RequestMethod.GET,  consumes = {MediaType.APPLICATION_JSON_VALUE} ,produces ={MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<String> getPartie(@RequestBody Partieee partieee) {
+    @RequestMapping (value = "/motus/partie/{pseudo}", method = RequestMethod.GET, produces ={MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<String> getPartie(@PathVariable("pseudo") String pseudo ) {
         try {
-            Partie partie = facadeMotus.getPartie(partieee.getPseudo());
-            String res = "Partieee de " + partieee.getPseudo();
-            res += " Nb Essais:" + partie.getNbEssais();
-            return ResponseEntity.status(HttpStatus.OK).body(res);
+            Partie partie = facadeMotus.getPartie(pseudo);
+            String json="";
+
+            ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+            try {
+                json = ow.writeValueAsString(partie);
+            } catch (JsonProcessingException e) {
+                json="Erreur traduction json";
+            }
+            json = json.replaceAll("\n", " ");
+            json = json.replaceAll("\"motRecherche\" : \"[A-Z]*\",", "");
+            json = json.replaceAll("\"dico.*},", "");
+            return ResponseEntity.status(HttpStatus.OK).body(json);
         } catch (PseudoNonConnecteException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pseudo non connecté");
         }
     }
 
-    @RequestMapping (value = "/partie", method = RequestMethod.PUT,  consumes = {MediaType.APPLICATION_JSON_VALUE} ,produces ={MediaType.APPLICATION_JSON_VALUE})
+    @RequestMapping (value = "/motus/partie", method = RequestMethod.PUT,  consumes = {MediaType.APPLICATION_JSON_VALUE} ,produces ={MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<String> jouer(@RequestBody Mottt mottt) {
         try {
             String res = facadeMotus.jouer(mottt.getPseudo(), mottt.getMot());
-            res += "  Nombre d'essais: " + facadeMotus.getPartie(mottt.getPseudo()).getNbEssais();
+            System.out.println(res);
             return ResponseEntity.status(HttpStatus.OK).body(res);
         } catch (PseudoNonConnecteException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pseudo non connecté");

@@ -9,6 +9,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MotusLocal implements Facade {
 
@@ -52,13 +54,16 @@ public class MotusLocal implements Facade {
     }
 
     public String deconnexion() {
+        if(player==null){
+            return "Vous n'êtes pas connecté";
+        }
         Map<String, String> params = new HashMap<String, String>();
         params.put("pseudo",player.getPseudo());
         RestTemplate restTemplate = new RestTemplate();
         try{
             restTemplate.delete ( uriDeco,  params );
             player=null;
-            return "Bye";
+            return "Deconnexion réussie";
         } catch (HttpClientErrorException e) {
             return e.getResponseBodyAsString();
         }
@@ -72,6 +77,54 @@ public class MotusLocal implements Facade {
         return result;
     }
 
+    public String creaPartie(String dico) {
+        if(player==null){
+            return "Connectez vous avant de créer une partie";
+        }
+        String json="{\"pseudo\" : \""+player.getPseudo()+"\",\"dico\" : \""+dico+"\"}";
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> httpEntity = new HttpEntity<String>(json, headers);
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(uriPartie, httpEntity, String.class);
+            return "Creer";
+        } catch (HttpClientErrorException e) {
+            return "Erreur inconnue";
+        }
+    }
+
+    public String getPartie() {
+        String temp="";
+        if(player==null){
+            return "Vous n'êtes pas connecté";
+        }
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("pseudo",player.getPseudo());
+        RestTemplate restTemplate = new RestTemplate();
+        String result=restTemplate.getForObject(uriGetPartie,String.class,params);
+        result=result.replace("}","");
+        result=result.replace("{","");
+        result=result.replace("\"","");
+        return result.trim();
+    }
+
+    public String jouer(String mot) {
+        if(player==null){
+            return "Connectez vous avant de jouer";
+        }
+        String json="{\"pseudo\" : \""+player.getPseudo()+"\",\"mot\" : \""+mot+"\"}";
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> httpEntity = new HttpEntity<String>(json, headers);
+        try {
+            restTemplate.put(uriPartie,httpEntity,String.class);
+            return "Jouer";
+        } catch (HttpClientErrorException e) {
+            return "Erreur inconnue";
+        }
+    }
 }
 
 

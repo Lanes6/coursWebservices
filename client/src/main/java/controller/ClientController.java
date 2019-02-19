@@ -7,22 +7,37 @@ import java.util.Scanner;
 
 public class ClientController {
     public static void main(String args[]) {
-        int choix;
+        int choix=10;
+        String temp;
         Scanner sc = new Scanner(System.in);
         Facade motus = new MotusLocal();
-        while (true){
+        while (choix!=0){
             System.out.println("-----------------------");
             System.out.println("Actions=> 1-Connexion  2-Deconnexion  3-Dicos  4-Nouvelle partie  5-Jouer  6-Info Partie 0-Quitter");
-            choix=Integer.parseInt(sc.nextLine());
+            try {
+                choix=Integer.parseInt(sc.nextLine());
+            }catch (NumberFormatException e){
+                choix=10;
+            }
             switch (choix){
-                case 1: System.out.println("Nom de joueur:");
+                case 1: System.out.println("Nom de joueur?");
+                        //temp=sc.nextLine();
+                        //System.out.println(motus.connexion(temp));
+                        System.out.println(motus.connexion("Joueur1000"));
+                        break;
                 case 2: System.out.println(motus.deconnexion());
+                        break;
                 case 3: System.out.println(motus.getDicos());
-                case 4: System.out.println("-");
-                case 5: System.out.println("-");
-                case 6: System.out.println("-");
-                case 7: System.out.println("-");
-                case 0: break;
+                        break;
+                case 4: System.out.println("Dico utilisé?");
+                        //temp=sc.nextLine();
+                        //System.out.println(motus.creaPartie(temp));
+                        System.out.println(motus.creaPartie("dico7lettres"));
+                        break;
+                case 5: System.out.println(motus.jouer("ABAISSA"));
+                        break;
+                case 6: System.out.println(motus.getPartie());
+                        break;
             }
 
         }
