@@ -5,12 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import org.springframework.http.*;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class MotusLocal implements Facade {
 
@@ -38,7 +37,7 @@ public class MotusLocal implements Facade {
                 } else {
                     return "Erreur inconnue";
                 }
-            } catch (HttpClientErrorException e) {
+            } catch (HttpClientErrorException |HttpServerErrorException e) {
                 if (e.getStatusCode().value() == HttpStatus.NOT_FOUND.value()) {
                     return "Requete mal formée";
                 }
@@ -64,17 +63,19 @@ public class MotusLocal implements Facade {
             restTemplate.delete ( uriDeco,  params );
             player=null;
             return "Deconnexion réussie";
-        } catch (HttpClientErrorException e) {
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
             return e.getResponseBodyAsString();
         }
     }
 
 
     public String getDicos() {
-
         RestTemplate restTemplate = new RestTemplate();
-        String result = restTemplate.getForObject(uriDicos, String.class);
-        return result;
+        try{
+            return restTemplate.getForObject(uriDicos, String.class);
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            return e.getResponseBodyAsString();
+        }
     }
 
     public String creaPartie(String dico) {
@@ -87,26 +88,29 @@ public class MotusLocal implements Facade {
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<String> httpEntity = new HttpEntity<String>(json, headers);
         try {
-            ResponseEntity<String> response = restTemplate.postForEntity(uriPartie, httpEntity, String.class);
-            return "Creer";
-        } catch (HttpClientErrorException e) {
-            return "Erreur inconnue";
+            restTemplate.postForEntity(uriPartie, httpEntity, String.class);
+            return "Partie créée";
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            return e.getResponseBodyAsString();
         }
     }
 
     public String getPartie() {
-        String temp="";
         if(player==null){
             return "Vous n'êtes pas connecté";
         }
         Map<String, String> params = new HashMap<String, String>();
         params.put("pseudo",player.getPseudo());
         RestTemplate restTemplate = new RestTemplate();
-        String result=restTemplate.getForObject(uriGetPartie,String.class,params);
-        result=result.replace("}","");
-        result=result.replace("{","");
-        result=result.replace("\"","");
-        return result.trim();
+        try {
+            String result = restTemplate.getForObject(uriGetPartie, String.class, params);
+            result = result.replace("}", "");
+            result = result.replace("{", "");
+            result = result.replace("\"", "");
+            return result.trim();
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            return e.getResponseBodyAsString();
+        }
     }
 
     public String jouer(String mot) {
@@ -119,189 +123,23 @@ public class MotusLocal implements Facade {
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<String> httpEntity = new HttpEntity<String>(json, headers);
         try {
-            restTemplate.put(uriPartie,httpEntity,String.class);
-            return "Jouer";
-        } catch (HttpClientErrorException e) {
-            return "Erreur inconnue";
+            ResponseEntity<String> response = restTemplate.exchange(uriPartie, HttpMethod.PUT, httpEntity, String.class);
+            String res=response.getBody();
+            res=res.replace("m","*");
+            char[] resultat=res.toCharArray();
+            char[] proposition=mot.toCharArray();
+            for (int x=0; x<res.length();x++){
+                if (resultat[x]=='X'){
+                    resultat[x]=proposition[x];
+                }
+            }
+            res=String.valueOf(resultat).toUpperCase();
+            if(!res.contains("*")){
+                res=res+"\nGAGNER";
+            }
+             return res;
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            return e.getResponseBodyAsString();
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        /*
-        boolean paf=false;
-
-        if(paf) {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            MultiValueMap<String, Joueur> parts = new LinkedMultiValueMap<String, Joueur>();
-            parts.add("Joueur", player);
-            HttpEntity<MultiValueMap<String, Joueur>> httpEntity = new HttpEntity<MultiValueMap<String, Joueur>>(parts, headers);
-            ResponseEntity<String> resultat = restTemplate.postForEntity(uriJoueur, httpEntity, String.class);
-        }else{
-            String json="";
-            ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-            try {
-                json = ow.writeValueAsString(player);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<String> httpEntity = new HttpEntity<String>(json, headers);
-            ResponseEntity<String> resultat = restTemplate.postForEntity(uriJoueur, httpEntity, String.class);
-        }
-
-
-
-
-        return "ok";
-        */
-
-        /* ARRIVE A SE CONNECTER********************************
-        RestTemplate restTemplate = new RestTemplate();
-        MultiValueMap<String, Joueur> parts = new LinkedMultiValueMap<String, Joueur>();
-        parts.add("joueur", player);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-        restTemplate.postForObject("http://localhost:8080/joueur", parts, Joueur.class);
-
-        return "ok";
-        */
-
-        /*RestTemplate restTemplate = new RestTemplate();
-        MappingJackson2HttpMessageConverter jsonHttpMessageConverter = new MappingJackson2HttpMessageConverter();
-        //jsonHttpMessageConverter.getObjectMapper().configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-        restTemplate.getMessageConverters().add(jsonHttpMessageConverter);
-
-
-
-        MultiValueMap<String, Object> parts = new LinkedMultiValueMap<String, Object>();
-        parts.add("joueur", player);
-        Object response = restTemplate.postForObject("http://localhost:8080/joueur", parts, String.class);
-
-
-*/
-
-
-
-
-
-
-
-        /*
-        RestTemplate restTemplate = new RestTemplate();
-        //HttpEntity<Joueur> entity = new HttpEntity<Joueur>(player);
-        //restTemplate.exchange("http://localhost:8080/joueur", HttpMethod.POST, entity, Joueur.class);
-
-        restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
-        String objectResponse = restTemplate.postForObject("http://localhost:8080/joueur",, String.class);
-        */
-
-
-
-
-/*
-        MultiValueMap<String, Joueur> map= new LinkedMultiValueMap<String, Joueur>();
-        map.put("Joueur", Arrays.asList(player));
-        // headers + body
-        HttpEntity<MultiValueMap<String,Joueur>> httpEntity = new HttpEntity<MultiValueMap<String,Joueur>>(map , httpHeaders);
-
-        ResponseEntity<String> resultat = restTemplate.postForEntity(uriJoueur, httpEntity, String.class);
-        String contenu = resultat.getBody();
-*/
-
-
-
-
-
-/*
-        RestTemplate restTemplate=new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-        HttpEntity<Joueur> entity = new HttpEntity<Joueur>(player,headers);
-        restTemplate.exchange("http://localhost:8080/joueur", HttpMethod.POST, entity, String.class);
-*/
-        //RestTemplate restTemplate=new RestTemplate();
-       // ResponseEntity<Joueur> response = restTemplate.exchange(uriJoueur, HttpMethod.POST,request,Joueur.class);
-
-
-        /*
-        List<HttpMessageConverter<?>> messageConverters = new ArrayList<HttpMessageConverter<?>>();
-        //Add the Jackson Message converter
-        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        // Note: here we are making this converter to process any kind of response,
-        // not only application/*json, which is the default behaviour
-        converter.setSupportedMediaTypes(Arrays.asList(new MediaType[]{MediaType.ALL}));
-        messageConverters.add(converter);
-        restTemplate.setMessageConverters(messageConverters);
-        */
-
-        //HttpHeaders requestHeaders = new HttpHeaders();
-        //requestHeaders.add(HttpHeaders.CONTENT_TYPE, "application/x-www-form-urlencoded");
-        //ResponseEntity<String> st = restTemplate.exchange(url, HttpMethod.POST, httpEntity, String.class);
-
-
-
-        //HttpEntity<Joueur> httpEntity = new HttpEntity<Joueur>(player);
-        //ResponseEntity<Joueur> responseEntity=restTemplate.exchange(uriJoueur,HttpMethod.POST,httpEntity,Joueur.class);
-
-        /*
-        ClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-        RestTemplate restTemplate = new RestTemplate(requestFactory);
-
-        HttpEntity<Joueur> request = new HttpEntity<Joueur>(player);
-        Joueur joueur = restTemplate.postForObject(uriJoueur, request, Joueur.class);
-        */
-
-
-        /*
-        RestTemplate restTemplate = new RestTemplate();
-        HttpEntity<Joueur> request = new HttpEntity<Joueur>(player);
-        MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter = new MappingJackson2HttpMessageConverter();
-        mappingJackson2HttpMessageConverter.setSupportedMediaTypes(Arrays.asList(MediaType.APPLICATION_JSON, MediaType.));
-        restTemplate.getMessageConverters().add(mappingJackson2HttpMessageConverter);
-
-
-        ResponseEntity<Joueur> response = restTemplate.exchange(uriJoueur, HttpMethod.POST,request,Joueur.class);
-        */
-
-
-
-
-        /*
-        try{
-            ResponseEntity<String> responseEntity = restTemplate.postForEntity("http://localhost:8080/joueur",httpEntity,String.class);
-        }catch (HttpClientErrorException e){
-            System.out.println("aie");
-        }*/
-
-//    }
-
-//}

@@ -35,6 +35,8 @@ public class Controller {
             return new ResponseEntity(HttpStatus.CREATED);
         } catch (PseudoDejaPrisException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pseudo deja pris");
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur serveur");
         }
     }
 
@@ -45,18 +47,24 @@ public class Controller {
             return ResponseEntity.status(HttpStatus.OK).body("Bye");
         } catch (PseudoNonConnecteException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pseudo non connecté");
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur serveur");
         }
     }
 
     @RequestMapping (value = "/motus/dicos", method = RequestMethod.GET ,produces ={MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<String> getDicos() {
-        Collection<String> temp = facadeMotus.getListeDicos();
-        String res = "Liste des dicos:";
-        Iterator it = temp.iterator();
-        while (it.hasNext()) {
-            res += it.next() + ",";
+        try {
+            Collection<String> temp = facadeMotus.getListeDicos();
+            String res = "Liste des dicos:";
+            Iterator it = temp.iterator();
+            while (it.hasNext()) {
+                res += it.next() + ",";
+            }
+            return ResponseEntity.status(HttpStatus.OK).body(res);
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur serveur");
         }
-        return ResponseEntity.status(HttpStatus.OK).body(res);
     }
 
     @RequestMapping (value = "/motus/partie", method = RequestMethod.POST,  consumes = {MediaType.APPLICATION_JSON_VALUE} ,produces ={MediaType.APPLICATION_JSON_VALUE})
@@ -67,7 +75,9 @@ public class Controller {
         } catch (PseudoNonConnecteException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pseudo non connecté");
         } catch (URISyntaxException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Mauvaise URI");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Mauvaise URI");
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur serveur");
         }
     }
 
@@ -75,8 +85,10 @@ public class Controller {
     public ResponseEntity<String> getPartie(@PathVariable("pseudo") String pseudo ) {
         try {
             Partie partie = facadeMotus.getPartie(pseudo);
+            if(partie==null){
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Aucune partie en cours");
+            }
             String json="";
-
             ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
             try {
                 json = ow.writeValueAsString(partie);
@@ -84,19 +96,26 @@ public class Controller {
                 json="Erreur traduction json";
             }
             json = json.replaceAll("\n", " ");
-            json = json.replaceAll("\"motRecherche\" : \"[A-Z]*\",", "");
             json = json.replaceAll("\"dico.*},", "");
+            json = json.replaceAll("\"dico.*}", "");
+            json = json.replaceAll("\"motRecherche\" : \"[A-Z]*\",", "");
             return ResponseEntity.status(HttpStatus.OK).body(json);
         } catch (PseudoNonConnecteException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pseudo non connecté");
-        }
+        } catch (Exception e){
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur serveur");
+    }
     }
 
     @RequestMapping (value = "/motus/partie", method = RequestMethod.PUT,  consumes = {MediaType.APPLICATION_JSON_VALUE} ,produces ={MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<String> jouer(@RequestBody Mottt mottt) {
         try {
+            Partie partie = facadeMotus.getPartie(mottt.getPseudo());
+            System.out.println(partie.getMotRecherche());
+            if(partie==null){
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Aucune partie en cours");
+            }
             String res = facadeMotus.jouer(mottt.getPseudo(), mottt.getMot());
-            System.out.println(res);
             return ResponseEntity.status(HttpStatus.OK).body(res);
         } catch (PseudoNonConnecteException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pseudo non connecté");
@@ -104,6 +123,8 @@ public class Controller {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("MaxNbCoup");
         } catch (MotInexistantException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Mot inexistant");
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur serveur");
         }
     }
 }
