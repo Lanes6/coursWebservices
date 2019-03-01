@@ -28,6 +28,11 @@ import java.util.Iterator;
 public class Controller {
     private static FacadeMotus facadeMotus = new FacadeMotusStatic();
 
+    @RequestMapping (value = "/motus/login")
+    public ResponseEntity<String> login() {
+        return new ResponseEntity(HttpStatus.OK);
+    }
+
     @RequestMapping (value = "/motus/joueur", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE} ,produces ={MediaType.APPLICATION_JSON_VALUE} )
     public ResponseEntity<String> connexion(@RequestBody Joueur joueur) {
         try {
