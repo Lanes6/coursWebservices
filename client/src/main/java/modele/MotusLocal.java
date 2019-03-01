@@ -35,7 +35,7 @@ public class MotusLocal implements Facade {
                 if (response.getStatusCode().value() == HttpStatus.CREATED.value()) {
                     return "Le joueur " + this.player.getPseudo() + " a été créé";
                 } else {
-                    return "Erreur inconnue";
+                    return "Erreur inconnue! ";
                 }
             } catch (HttpClientErrorException |HttpServerErrorException e) {
                 if (e.getStatusCode().value() == HttpStatus.NOT_FOUND.value()) {

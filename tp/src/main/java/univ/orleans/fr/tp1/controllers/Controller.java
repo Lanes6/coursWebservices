@@ -101,7 +101,7 @@ public class Controller {
             json = json.replaceAll("\"motRecherche\" : \"[A-Z]*\",", "");
             return ResponseEntity.status(HttpStatus.OK).body(json);
         } catch (PseudoNonConnecteException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pseudo non connecté");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pseudo non connecté!");
         } catch (Exception e){
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur serveur");
     }
