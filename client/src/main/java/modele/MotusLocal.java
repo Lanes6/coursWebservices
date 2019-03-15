@@ -15,6 +15,9 @@ public class MotusLocal implements Facade {
 
     private Joueur player;
 
+
+
+
     public String connexion(String pseudo) {
         if(player==null){
             this.player = new Joueur();
@@ -29,6 +32,7 @@ public class MotusLocal implements Facade {
             }
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authozisation",player.getAccesToken());
             HttpEntity<String> httpEntity = new HttpEntity<String>(json, headers);
             try {
                 ResponseEntity<String> response = restTemplate.postForEntity(uriJoueur, httpEntity, String.class);
@@ -41,9 +45,12 @@ public class MotusLocal implements Facade {
                 if (e.getStatusCode().value() == HttpStatus.NOT_FOUND.value()) {
                     return "Requete mal formée";
                 }
-                if (e.getStatusCode().value() == HttpStatus.UNAUTHORIZED.value()) {
+                if (e.getStatusCode().value() == HttpStatus.BAD_REQUEST.value()) {
                     this.player.setPseudo(pseudo);
                     return "Reprise de la session du joueur " + this.player.getPseudo();
+                }
+                if (e.getStatusCode().value() == HttpStatus.UNAUTHORIZED.value()) {
+                    return authentification(pseudo,e.getResponseBodyAsString());
                 }
                 return "Erreur inconnue";
             }
@@ -59,8 +66,10 @@ public class MotusLocal implements Facade {
         Map<String, String> params = new HashMap<String, String>();
         params.put("pseudo",player.getPseudo());
         RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authozisation",player.getAccesToken());
         try{
-            restTemplate.delete ( uriDeco,  params );
+            restTemplate.delete ( uriDeco,  params,headers );
             player=null;
             return "Deconnexion réussie";
         } catch (HttpClientErrorException | HttpServerErrorException e) {
@@ -71,8 +80,10 @@ public class MotusLocal implements Facade {
 
     public String getDicos() {
         RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authozisation",player.getAccesToken());
         try{
-            return restTemplate.getForObject(uriDicos, String.class);
+            return restTemplate.getForObject(uriDicos, String.class,headers);
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             return e.getResponseBodyAsString();
         }
@@ -85,6 +96,7 @@ public class MotusLocal implements Facade {
         String json="{\"pseudo\" : \""+player.getPseudo()+"\",\"dico\" : \""+dico+"\"}";
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
+        headers.set("Authozisation",player.getAccesToken());
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<String> httpEntity = new HttpEntity<String>(json, headers);
         try {
@@ -102,8 +114,10 @@ public class MotusLocal implements Facade {
         Map<String, String> params = new HashMap<String, String>();
         params.put("pseudo",player.getPseudo());
         RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authozisation",player.getAccesToken());
         try {
-            String result = restTemplate.getForObject(uriGetPartie, String.class, params);
+            String result = restTemplate.getForObject(uriGetPartie, String.class, params, headers);
             result = result.replace("}", "");
             result = result.replace("{", "");
             result = result.replace("\"", "");
@@ -121,9 +135,10 @@ public class MotusLocal implements Facade {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authozisation",player.getAccesToken());
         HttpEntity<String> httpEntity = new HttpEntity<String>(json, headers);
         try {
-            ResponseEntity<String> response = restTemplate.exchange(uriPartie, HttpMethod.PUT, httpEntity, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(uriPartie, HttpMethod.PUT, httpEntity, String.class, headers);
             String res=response.getBody();
             res=res.replace("m","*");
             char[] resultat=res.toCharArray();
@@ -142,4 +157,21 @@ public class MotusLocal implements Facade {
             return e.getResponseBodyAsString();
         }
     }
+
+    public String authentification(String pseudo, String uri){
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("pseudo",pseudo);
+        RestTemplate restTemplate = new RestTemplate();
+        try {
+            String result = restTemplate.getForObject(uri, String.class, params);
+            player.setAccesToken(result);
+            return connexion(pseudo);
+
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            return e.getResponseBodyAsString();
+        }
+    }
+
+
+
 }

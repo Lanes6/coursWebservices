@@ -17,9 +17,11 @@ import org.springframework.web.bind.annotation.*;
 import univ.orleans.fr.tp1.Joueur;
 import univ.orleans.fr.tp1.Mottt;
 import univ.orleans.fr.tp1.Partieee;
+import univ.orleans.fr.tp1.security.SecurityMap;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.Security;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -27,19 +29,16 @@ import java.util.Iterator;
 @RequestMapping
 public class Controller {
     private static FacadeMotus facadeMotus = new FacadeMotusStatic();
-
-    @RequestMapping (value = "/motus/login")
-    public ResponseEntity<String> login() {
-        return new ResponseEntity(HttpStatus.OK);
-    }
+    private static univ.orleans.fr.tp1.security.SecurityMap mapSec = new SecurityMap();
 
     @RequestMapping (value = "/motus/joueur", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE} ,produces ={MediaType.APPLICATION_JSON_VALUE} )
     public ResponseEntity<String> connexion(@RequestBody Joueur joueur) {
         try {
             facadeMotus.connexion(joueur.getPseudo());
-            return new ResponseEntity(HttpStatus.CREATED);
+            String jwt = mapSec.encode(joueur.getPseudo());
+            return ResponseEntity.status(HttpStatus.OK).body(jwt);
         } catch (PseudoDejaPrisException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pseudo deja pris");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Pseudo deja pris");
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur serveur");
         }
