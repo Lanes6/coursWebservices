@@ -5,7 +5,7 @@ public class Partieee {
     private String pseudo;
     private String dico;
 
-    public Partieee(){
+    public Partieee() {
 
     }
 

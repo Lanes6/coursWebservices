@@ -5,6 +5,6 @@ package exceptions;
  */
 public class MotInexistantException extends Exception {
     public MotInexistantException(String mot) {
-        super("mot inconnu "+mot);
+        super("mot inconnu " + mot);
     }
 }

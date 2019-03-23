@@ -13,9 +13,7 @@ public class FacadeMotusStatic implements FacadeMotus {
 
     private Map<String, Partie> parties = new HashMap<>();
 
-    private Collection<String> pseudos= new ArrayList<>();
-
-
+    private Collection<String> pseudos = new ArrayList<>();
 
 
     private void checkConnecte(String pseudo) throws PseudoNonConnecteException {
@@ -50,12 +48,12 @@ public class FacadeMotusStatic implements FacadeMotus {
     @Override
     public void nouvellePartie(String pseudo, String dicoName) throws PseudoNonConnecteException {
         this.checkConnecte(pseudo);
-        this.parties.put(pseudo,new Partie(Dico.getInstance(dicoName)));
+        this.parties.put(pseudo, new Partie(Dico.getInstance(dicoName)));
     }
 
     @Override
-    public Collection<String> getListeDicos(){
-        return Arrays.asList("dico7lettres","dicosimple7lettres");
+    public Collection<String> getListeDicos() {
+        return Arrays.asList("dico7lettres", "dicosimple7lettres");
     }
 
     @Override

@@ -21,7 +21,7 @@ public class Dico {
 //        filePath = (Dico.class).getResource(filePath+".txt").getFile();
         //   = new BufferedReader(new FileReader(filePath));
 
-        InputStream in = (InputStream) (Dico.class.getResourceAsStream(filePath+".txt"));
+        InputStream in = (InputStream) (Dico.class.getResourceAsStream(filePath + ".txt"));
         buffer = new BufferedReader(new InputStreamReader(in));
         try (Stream<String> stream = buffer.lines()) {
             list = stream

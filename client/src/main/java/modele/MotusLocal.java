@@ -16,10 +16,8 @@ public class MotusLocal implements Facade {
     private Joueur player;
 
 
-
-
     public String connexion(String pseudo) {
-        if(player==null){
+        if (player == null) {
             this.player = new Joueur();
             String json = "";
             ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
@@ -32,16 +30,18 @@ public class MotusLocal implements Facade {
             }
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Authozisation",player.getAccesToken());
             HttpEntity<String> httpEntity = new HttpEntity<String>(json, headers);
             try {
-                ResponseEntity<String> response = restTemplate.postForEntity(uriJoueur, httpEntity, String.class);
+                ResponseEntity<String> response = restTemplate.postForEntity(uriJoueur,httpEntity, String.class);
                 if (response.getStatusCode().value() == HttpStatus.CREATED.value()) {
+                    String jwt= response.getBody().toString();
+                    System.out.println(jwt);
+                    player.setToken(new Token(jwt,""));
                     return "Le joueur " + this.player.getPseudo() + " a été créé";
                 } else {
                     return "Erreur inconnue! ";
                 }
-            } catch (HttpClientErrorException |HttpServerErrorException e) {
+            } catch (HttpClientErrorException | HttpServerErrorException e) {
                 if (e.getStatusCode().value() == HttpStatus.NOT_FOUND.value()) {
                     return "Requete mal formée";
                 }
@@ -50,27 +50,28 @@ public class MotusLocal implements Facade {
                     return "Reprise de la session du joueur " + this.player.getPseudo();
                 }
                 if (e.getStatusCode().value() == HttpStatus.UNAUTHORIZED.value()) {
-                    return authentification(pseudo,e.getResponseBodyAsString());
+                    //return authentification(pseudo, e.getResponseBodyAsString());
+                    return "Erreur";
                 }
                 return "Erreur inconnue";
             }
-        }else{
+        } else {
             return "Vous êtes déja connecté en temps que " + player.getPseudo() + ". Deconnectez vous d'abord!";
         }
     }
 
     public String deconnexion() {
-        if(player==null){
+        if (player == null) {
             return "Vous n'êtes pas connecté";
         }
         Map<String, String> params = new HashMap<String, String>();
-        params.put("pseudo",player.getPseudo());
+        params.put("pseudo", player.getPseudo());
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authozisation",player.getAccesToken());
-        try{
-            restTemplate.delete ( uriDeco,  params,headers );
-            player=null;
+        headers.set("Authozisation", player.getToken().getAccessToken());
+        try {
+            restTemplate.delete(uriDeco, params, headers);
+            player = null;
             return "Deconnexion réussie";
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             return e.getResponseBodyAsString();
@@ -81,22 +82,22 @@ public class MotusLocal implements Facade {
     public String getDicos() {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authozisation",player.getAccesToken());
-        try{
-            return restTemplate.getForObject(uriDicos, String.class,headers);
+        headers.set("Authozisation", player.getToken().getAccessToken());
+        try {
+            return restTemplate.getForObject(uriDicos, String.class, headers);
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             return e.getResponseBodyAsString();
         }
     }
 
     public String creaPartie(String dico) {
-        if(player==null){
+        if (player == null) {
             return "Connectez vous avant de créer une partie";
         }
-        String json="{\"pseudo\" : \""+player.getPseudo()+"\",\"dico\" : \""+dico+"\"}";
+        String json = "{\"pseudo\" : \"" + player.getPseudo() + "\",\"dico\" : \"" + dico + "\"}";
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authozisation",player.getAccesToken());
+        headers.set("Authozisation", player.getToken().getAccessToken());
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<String> httpEntity = new HttpEntity<String>(json, headers);
         try {
@@ -108,14 +109,14 @@ public class MotusLocal implements Facade {
     }
 
     public String getPartie() {
-        if(player==null){
+        if (player == null) {
             return "Vous n'êtes pas connecté";
         }
         Map<String, String> params = new HashMap<String, String>();
-        params.put("pseudo",player.getPseudo());
+        params.put("pseudo", player.getPseudo());
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authozisation",player.getAccesToken());
+        headers.set("Authozisation",player.getToken().getAccessToken());
         try {
             String result = restTemplate.getForObject(uriGetPartie, String.class, params, headers);
             result = result.replace("}", "");
@@ -128,50 +129,49 @@ public class MotusLocal implements Facade {
     }
 
     public String jouer(String mot) {
-        if(player==null){
+        if (player == null) {
             return "Connectez vous avant de jouer";
         }
-        String json="{\"pseudo\" : \""+player.getPseudo()+"\",\"mot\" : \""+mot+"\"}";
+        String json = "{\"pseudo\" : \"" + player.getPseudo() + "\",\"mot\" : \"" + mot + "\"}";
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authozisation",player.getAccesToken());
+        headers.set("Authozisation", player.getToken().getAccessToken());
         HttpEntity<String> httpEntity = new HttpEntity<String>(json, headers);
         try {
             ResponseEntity<String> response = restTemplate.exchange(uriPartie, HttpMethod.PUT, httpEntity, String.class, headers);
-            String res=response.getBody();
-            res=res.replace("m","*");
-            char[] resultat=res.toCharArray();
-            char[] proposition=mot.toCharArray();
-            for (int x=0; x<res.length();x++){
-                if (resultat[x]=='X'){
-                    resultat[x]=proposition[x];
+            String res = response.getBody();
+            res = res.replace("m", "*");
+            char[] resultat = res.toCharArray();
+            char[] proposition = mot.toCharArray();
+            for (int x = 0; x < res.length(); x++) {
+                if (resultat[x] == 'X') {
+                    resultat[x] = proposition[x];
                 }
             }
-            res=String.valueOf(resultat).toUpperCase();
-            if(!res.contains("*")){
-                res=res+"\nGAGNER";
+            res = String.valueOf(resultat).toUpperCase();
+            if (!res.contains("*")) {
+                res = res + "\nGAGNER";
             }
-             return res;
+            return res;
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             return e.getResponseBodyAsString();
         }
     }
 
-    public String authentification(String pseudo, String uri){
+    public String authentification(String pseudo, String uri) {
         Map<String, String> params = new HashMap<String, String>();
-        params.put("pseudo",pseudo);
+        params.put("pseudo", pseudo);
         RestTemplate restTemplate = new RestTemplate();
         try {
             String result = restTemplate.getForObject(uri, String.class, params);
-            player.setAccesToken(result);
+            player.setToken(new Token(result,""));
             return connexion(pseudo);
 
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             return e.getResponseBodyAsString();
         }
     }
-
 
 
 }

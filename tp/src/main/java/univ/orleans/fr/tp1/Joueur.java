@@ -4,7 +4,7 @@ public class Joueur {
 
     private String pseudo;
 
-    public Joueur(){
+    public Joueur() {
 
     }
 

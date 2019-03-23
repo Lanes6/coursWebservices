@@ -5,7 +5,7 @@ public class Mottt {
     private String pseudo;
     private String mot;
 
-    public Mottt(){
+    public Mottt() {
 
     }
 

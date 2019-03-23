@@ -22,7 +22,7 @@ public class Partie {
     }
 
     public String jouer(String mot) throws MotInexistantException, MaxNbCoupsException {
-        if (essais.size()>= MAX_NB_COUPS) throw new MaxNbCoupsException();
+        if (essais.size() >= MAX_NB_COUPS) throw new MaxNbCoupsException();
         String motMaj = mot.toUpperCase();
         essais.add(motMaj);
         // le mot n'existe pas
@@ -61,29 +61,29 @@ public class Partie {
         char[] resultat = new char[mot.length()];
         boolean[] match = new boolean[motRecherche.length()];
         // marque les lettres à la bonne place
-        for(int i = 0; i<mot.length();i++) {
+        for (int i = 0; i < mot.length(); i++) {
             char c = mot.charAt(i);
-            if (c==motRecherche.charAt(i)) {
-                resultat[i]='X';
+            if (c == motRecherche.charAt(i)) {
+                resultat[i] = 'X';
                 match[i] = true;
             } else {
-                resultat[i]='*';
+                resultat[i] = '*';
                 match[i] = false;
             }
         }
         // les lettres à la mauvaise place
-        for(int i = 0; i<mot.length();i++) {
-            if (resultat[i]!='X') {
+        for (int i = 0; i < mot.length(); i++) {
+            if (resultat[i] != 'X') {
                 char c = mot.charAt(i);
                 int start = 0;
-                while (start>=0&&start<motRecherche.length()) {
-                    int j = motRecherche.indexOf(c,start);
-                    if (j>=0 && !match[j]) {
+                while (start >= 0 && start < motRecherche.length()) {
+                    int j = motRecherche.indexOf(c, start);
+                    if (j >= 0 && !match[j]) {
                         resultat[i] = 'm';
-                        match[j]=true;
+                        match[j] = true;
                         start = -1;
                     } else {
-                        start = (j>=0?j+1:j);
+                        start = (j >= 0 ? j + 1 : j);
                     }
                 }
             }
