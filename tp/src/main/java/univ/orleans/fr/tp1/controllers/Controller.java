@@ -35,10 +35,10 @@ public class Controller {
 
     @RequestMapping(value = "/motus/joueur", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<String> connexion(@RequestBody Joueur joueur) {
-        System.out.println("debut");
         try {
             facadeMotus.connexion(joueur.getPseudo());
             String jwt=createToken(joueur.getPseudo());
+            System.out.println(jwt);
             if(jwt!=null){
                 return ResponseEntity.status(HttpStatus.CREATED).body(jwt);
             }else{
@@ -141,19 +141,58 @@ public class Controller {
     }
 
     public String createToken(String pseudo) {
-        System.out.println("hello");
         String json = "{\"pseudo\" : \"" + pseudo+ "\"}";
+
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<String> httpEntity = new HttpEntity<String>(json, headers);
         try {
-            ResponseEntity<String> jwt = restTemplate.postForEntity(uriToken, httpEntity,String.class);
-            System.out.println(jwt.toString());
-            return jwt.toString();
+            ResponseEntity<String> response = restTemplate.postForEntity(uriToken, httpEntity, String.class);
+            return response.getBody().toString();
         } catch (HttpClientErrorException | HttpServerErrorException e) {
-            return null;
+            return e.getResponseBodyAsString();
         }
+
+
+
+
+
+
+
+
+
+        /*String json = "{\"pseudo\" : \"" + pseudo+ "\"}";
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> httpEntity = new HttpEntity<String>(json, headers);
+        try {
+
+
+            HttpHeaders headers2 = new HttpHeaders();
+            String test=restTemplate.getForObject("http://localhost:8090/test", String.class, headers);
+            System.out.println(test);
+
+            //ResponseEntity<String> jwt = restTemplate.postForEntity(uriToken, httpEntity,String.class);
+            //restTemplate.postForEntity("http://localhost:8090/token",new HttpEntity<>(),String.class);
+            //return jwt.toString();
+            return null;
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            System.out.println(e.toString());
+            return null;
+        }*/
+
+        /*RestTemplate restTemplate = new RestTemplate();
+        try {
+            HttpHeaders headers2 = new HttpHeaders();
+            headers2.setContentType(MediaType.APPLICATION_JSON);
+            String test=restTemplate.getForObject("http://localhost:8090/test", String.class, headers2);
+            return "ok";
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            return e.getResponseBodyAsString();
+        }
+    */
     }
 
 }

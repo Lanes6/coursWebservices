@@ -174,4 +174,25 @@ public class MotusLocal implements Facade {
     }
 
 
+
+
+
+
+
+    public String test() {
+        String json = "{\"pseudo\" : \"" + "paf"+ "\"}";
+
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> httpEntity = new HttpEntity<String>(json, headers);
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity("http://localhost:8090/test", httpEntity, String.class);
+            return response.getBody().toString();
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            return e.getResponseBodyAsString();
+        }
+    }
+
+
 }

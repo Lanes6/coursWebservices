@@ -8,13 +8,20 @@ import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2Res
 
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 public class SecurityMap {
 
-    private Map<String, String> map;
-    private Date expiration = new Date(3600 * 1000);
-    private String secretKey = "key";
+    private HashMap<String, String> map;
+    private Date expiration;
+    private String secretKey;
+
+    public SecurityMap(){
+        map= new HashMap<String, String>();
+        expiration= new Date(3600 * 1000);
+        secretKey="key";
+    }
 
 
     public String encode(String login) {

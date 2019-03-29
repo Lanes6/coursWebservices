@@ -20,15 +20,22 @@ import java.util.Iterator;
 public class Controller {
     private static SecurityMap secureMap = new SecurityMap();
 
-    @RequestMapping(value = "/token/{pseudo}", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<String> createToken(@PathVariable("pseudo") String pseudo) {
-        System.out.println("post");
+    @RequestMapping(value = "/token", method = RequestMethod.POST, produces = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<String> createToken(@RequestBody String pseudo) {
         try {
             String jwt = secureMap.encode(pseudo);
+            System.out.println(jwt);
             return ResponseEntity.status(HttpStatus.OK).body(jwt);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur serveur");
         }
+    }
+
+    @RequestMapping(value = "/test", method = RequestMethod.POST ,produces = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity test(@RequestBody String pseudo) {
+        String jwt = secureMap.encode(pseudo);
+        System.out.println(pseudo);
+        return (ResponseEntity) ResponseEntity.status(HttpStatus.OK).body("hello");
     }
 
     @RequestMapping(value = "/token/{jwt}", method = RequestMethod.GET, consumes = {MediaType.APPLICATION_JSON_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})

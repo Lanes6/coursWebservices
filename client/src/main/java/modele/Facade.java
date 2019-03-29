@@ -13,6 +13,8 @@ public interface Facade {
 
     public String getDicos();
 
+    public String test();
+
     public String creaPartie(String dico);
 
     public String getPartie();

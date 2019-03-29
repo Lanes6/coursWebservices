@@ -13,7 +13,7 @@ public class ClientController {
         Facade motus = new MotusLocal();
         while (choix != 0) {
             System.out.println("-----------------------");
-            System.out.println("Actions=> 1-Connexion  2-Deconnexion  3-Dicos  4-Nouvelle partie  5-Jouer  6-Info Partie 0-Quitter");
+            System.out.println("Actions=> 1-Connexion  2-Deconnexion  3-Dicos  4-Nouvelle partie  5-Jouer  6-Info Partie 0-Quitter 10-LE TEST");
             try {
                 choix = Integer.parseInt(sc.nextLine());
             } catch (NumberFormatException e) {
@@ -44,6 +44,9 @@ public class ClientController {
                     temp = motus.jouer(temp);
                     System.out.println(motus.getPartie());
                     System.out.println(temp);
+                    break;
+                case 10:
+                    System.out.println(motus.test());
                     break;
                 case 6:
                     System.out.println(motus.getPartie());
