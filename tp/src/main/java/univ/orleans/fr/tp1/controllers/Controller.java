@@ -31,6 +31,7 @@ import java.util.Map;
 @RequestMapping
 public class Controller {
     private static FacadeMotus facadeMotus = new FacadeMotusStatic();
+
     String uriToken = "http://localhost:8090/token";
 
     @RequestMapping(value = "/motus/joueur", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
