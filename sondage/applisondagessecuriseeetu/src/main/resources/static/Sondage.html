@@ -1,0 +1,186 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script language="javascript">
+        var xmlhttp;
+
+        function initialisation() {
+            // put more code here in case you are concerned about browsers that do not provide XMLHttpRequest object directly
+            xmlhttp = new XMLHttpRequest();
+            miseAJour();
+        }
+
+
+        function miseAJour() {
+            var url = "http://localhost:8080/sondages";
+            xmlhttp.open('GET', url, true);
+            xmlhttp.send(null);
+
+
+            xmlhttp.onreadystatechange = function () {
+                if (xmlhttp.readyState == 4) {
+                    if (xmlhttp.status == 200) {
+                        var seller = xmlhttp.responseText;
+                        var listeIdentifiants = JSON.parse(seller);
+                        var select = document.getElementById("mesSondages");
+
+                        select.options[0] = new Option("Choisir un sondage", -1);
+                        for (var i = 0, size = listeIdentifiants.length; i < size; i++) {
+                            var item = listeIdentifiants[i].id;
+                            var item2 = listeIdentifiants[i].question;
+                            select.options[i + 1] = new Option(item2, item);
+                        }
+                    } else
+                        alert("Error!!! ->" + xmlhttp.responseText);
+                }
+            };
+
+        }
+
+
+        function cleanTable() {
+            var tableau = document.getElementById("monSondage");
+
+
+            // nombre de lignes dans la table (avant ajout de la ligne)
+            var nbLignes = tableau.rows.length;
+
+            while (nbLignes > 0) {
+                tableau.deleteRow(-1);
+                nbLignes = tableau.rows.length;
+            }
+
+        }
+
+        function insererLibelle(leftCell, rightCell) {
+            var cell, ligne;
+
+            // on récupère l'identifiant (id) de la table qui sera modifiée
+
+            var tableau = document.getElementById("monSondage");
+            ligne = tableau.insertRow(-1); // création d'une ligne pour ajout en fin de table
+                                           // le paramètre est dans ce cas (-1)
+
+            // création et insertion des cellules dans la nouvelle ligne créée
+            cell = ligne.insertCell(0);
+            cell.innerHTML = leftCell;
+
+            cell = ligne.insertCell(1);
+            cell.innerHTML = rightCell;
+
+        }
+
+
+        function insererReponse(idSondage, rightCell) {
+            var cell, ligne;
+
+            // on récupère l'identifiant (id) de la table qui sera modifiée
+
+            var tableau = document.getElementById("monSondage");
+            ligne = tableau.insertRow(-1); // création d'une ligne pour ajout en fin de table
+                                           // le paramètre est dans ce cas (-1)
+
+            // création et insertion des cellules dans la nouvelle ligne créée
+            cell = ligne.insertCell(0);
+
+
+            var checkbox = document.createElement('input');
+            checkbox.type = "checkbox";
+            checkbox.name = "sondage" + idSondage;
+            checkbox.value = rightCell;
+
+            cell.innerHTML = checkbox.outerHTML;
+            cell = ligne.insertCell(1);
+            cell.innerHTML = rightCell;
+
+        }
+
+        function majFormulaire(id, question, reponses) {
+            cleanTable();
+
+            insererLibelle(id, question);
+            for (var i = 0; i < reponses.length; i++) {
+                insererReponse(id, reponses[i]);
+            }
+        }
+
+
+        function ajouterLigne() {
+            var select = document.getElementById("mesSondages");
+            var indice = select.selectedIndex;
+            var valeur = select.options[indice].value;
+
+
+            document.getElementById("babar").value = select.options[indice].value;
+
+            if (select.options[indice].value >= 0) {
+                xmlhttp2 = new XMLHttpRequest();
+                var url = "http://localhost:8080/sondages/" + select.options[indice].value;
+                xmlhttp2.open('GET', url, true);
+                xmlhttp2.send(null);
+                xmlhttp2.onreadystatechange = function () {
+                    if (xmlhttp2.readyState == 4) {
+                        if (xmlhttp2.status == 200) {
+                            var seller = xmlhttp2.responseText;
+                            sondage = JSON.parse(seller);
+                            majFormulaire(sondage.id, sondage.question, sondage.reponses);
+                        } else
+                            alert("Error!!! ->" + xmlhttp2.responseText);
+                    }
+                };
+
+
+                initialisation();
+            }
+        }
+    </script>
+</head>
+
+<body onload="initialisation()">
+<h1>Sondage RESTful Web Service Demo</h1>
+
+
+<form name="monFormulaire">
+
+
+    <table id="maTable">
+        <tr>
+            <td>Choisir un sondage</td>
+            <td>
+                <select id="mesSondages">
+                    <option>Choisir un sondage</option>
+                </select>
+
+            </td>
+        </tr>
+
+        <tr>
+            <td></td>
+            <td><input id="babar" type="text"></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td><input type="button" value="Va chercher lycos" onclick="ajouterLigne()"></td>
+        </tr>
+
+    </table>
+
+</form>
+
+
+<form name="sondageChoisi">
+
+    <table id="monSondage">
+
+    </table>
+
+
+</form>
+<br>
+<a href="index.html">Back to menu</a>
+
+
+</body>
+</html>

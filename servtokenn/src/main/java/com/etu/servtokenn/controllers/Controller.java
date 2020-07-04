@@ -24,7 +24,6 @@ public class Controller {
     public ResponseEntity<String> createToken(@RequestBody String pseudo) {
         try {
             String jwt = secureMap.encode(pseudo);
-            System.out.println(jwt);
             return ResponseEntity.status(HttpStatus.OK).body(jwt);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur serveur");

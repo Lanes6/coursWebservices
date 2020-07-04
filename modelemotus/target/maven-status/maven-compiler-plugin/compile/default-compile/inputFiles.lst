@@ -1,0 +1,9 @@
+/home/lanes/Documents/travail/2ndmaster1/webservice/modelemotus/src/main/java/facade/FacadeMotus.java
+/home/lanes/Documents/travail/2ndmaster1/webservice/modelemotus/src/main/java/modele/Partie.java
+/home/lanes/Documents/travail/2ndmaster1/webservice/modelemotus/src/main/java/exceptions/PseudoNonConnecteException.java
+/home/lanes/Documents/travail/2ndmaster1/webservice/modelemotus/src/main/java/modele/Joueur.java
+/home/lanes/Documents/travail/2ndmaster1/webservice/modelemotus/src/main/java/facade/FacadeMotusStatic.java
+/home/lanes/Documents/travail/2ndmaster1/webservice/modelemotus/src/main/java/exceptions/MotInexistantException.java
+/home/lanes/Documents/travail/2ndmaster1/webservice/modelemotus/src/main/java/exceptions/PseudoDejaPrisException.java
+/home/lanes/Documents/travail/2ndmaster1/webservice/modelemotus/src/main/java/exceptions/MaxNbCoupsException.java
+/home/lanes/Documents/travail/2ndmaster1/webservice/modelemotus/src/main/java/modele/Dico.java
